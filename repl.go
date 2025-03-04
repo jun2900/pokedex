@@ -27,8 +27,12 @@ func startRepl() {
 		}
 
 		commandName := words[0]
+		extraCommand := ""
+		if len(words) > 1 {
+			extraCommand = words[1]
+		}
 
-		command, exists := config.getCommands()[commandName]
+		command, exists := config.getCommands(extraCommand)[commandName]
 		if exists {
 			err := command.callback()
 			if err != nil {
@@ -60,7 +64,7 @@ type config struct {
 	Cache   *internal.Cache
 }
 
-func (c *config) getCommands() map[string]cliCommand {
+func (c *config) getCommands(input string) map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",
@@ -81,6 +85,13 @@ func (c *config) getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Displays a map of the Pokedex backward",
 			callback:    c.mapPokedexBackward,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Displays pokemon in a certain area",
+			callback: func() error {
+				return c.commandExplore(input)
+			},
 		},
 	}
 }
