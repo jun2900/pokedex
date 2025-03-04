@@ -109,5 +109,12 @@ func (c *config) getCommands(input string) map[string]cliCommand {
 				return c.commandInspect(input)
 			},
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Displays your pokedex",
+			callback: func() error {
+				return c.commandPokedex()
+			},
+		},
 	}
 }
