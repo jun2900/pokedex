@@ -102,5 +102,12 @@ func (c *config) getCommands(input string) map[string]cliCommand {
 				return c.commandCatch(input)
 			},
 		},
+		"inspect": {
+			name:        "inspect",
+			description: "Displays information about a pokemon",
+			callback: func() error {
+				return c.commandInspect(input)
+			},
+		},
 	}
 }
