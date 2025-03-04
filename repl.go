@@ -14,6 +14,7 @@ func startRepl() {
 	config := &config{
 		NextURL: "https://pokeapi.co/api/v2/location-area/",
 		Cache:   internal.NewCache(5 * time.Second),
+		Pokedex: make(map[string]Pokemon),
 	}
 
 	reader := bufio.NewScanner(os.Stdin)
@@ -62,6 +63,7 @@ type config struct {
 	NextURL string
 	PrevURL *string
 	Cache   *internal.Cache
+	Pokedex map[string]Pokemon
 }
 
 func (c *config) getCommands(input string) map[string]cliCommand {
@@ -91,6 +93,13 @@ func (c *config) getCommands(input string) map[string]cliCommand {
 			description: "Displays pokemon in a certain area",
 			callback: func() error {
 				return c.commandExplore(input)
+			},
+		},
+		"catch": {
+			name:        "catch",
+			description: "Attempts to catch a pokemon",
+			callback: func() error {
+				return c.commandCatch(input)
 			},
 		},
 	}
