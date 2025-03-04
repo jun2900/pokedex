@@ -22,22 +22,8 @@ func (c *config) mapPokedexBackward() error {
 		return fmt.Errorf("cannot map backward, there's no previous page")
 	}
 
-	res, err := http.Get(*c.PrevURL)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("received non-200 status code: %d and\nbody: %s", res.StatusCode, body)
-	}
-
 	var data areaLocationsResponse
-	err = json.Unmarshal(body, &data)
+	err := c.getDataFromCacheOrHTTP(*c.PrevURL, &data)
 	if err != nil {
 		return err
 	}
@@ -50,23 +36,10 @@ func (c *config) mapPokedexBackward() error {
 	}
 	return nil
 }
-func (c *config) mapPokedex() error {
-	res, err := http.Get(c.NextURL)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("received non-200 status code: %d and\nbody: %s", res.StatusCode, body)
-	}
-
+func (c *config) mapPokedexForward() error {
 	var data areaLocationsResponse
-	err = json.Unmarshal(body, &data)
+	err := c.getDataFromCacheOrHTTP(c.NextURL, &data)
 	if err != nil {
 		return err
 	}
@@ -76,6 +49,36 @@ func (c *config) mapPokedex() error {
 
 	for _, r := range data.Results {
 		fmt.Println(r.Name)
+	}
+
+	return nil
+}
+
+func (c *config) getDataFromCacheOrHTTP(url string, data interface{}) error {
+	var body []byte
+	values, exist := c.Cache.Get(url)
+	if !exist {
+		res, err := http.Get(url)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode >= 400 {
+			return fmt.Errorf("received non-200 status code: %d and\nbody: %s", res.StatusCode, body)
+		}
+
+		c.Cache.Add(url, body)
+	} else {
+		body = values
+	}
+	err := json.Unmarshal(body, data)
+	if err != nil {
+		return err
 	}
 	return nil
 }

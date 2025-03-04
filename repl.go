@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/jun2900/pokedexcli/internal"
 )
 
 func startRepl() {
 	config := &config{
 		NextURL: "https://pokeapi.co/api/v2/location-area/",
+		Cache:   internal.NewCache(5 * time.Second),
 	}
 
 	reader := bufio.NewScanner(os.Stdin)
@@ -53,6 +57,7 @@ type cliCommand struct {
 type config struct {
 	NextURL string
 	PrevURL *string
+	Cache   *internal.Cache
 }
 
 func (c *config) getCommands() map[string]cliCommand {
@@ -70,7 +75,7 @@ func (c *config) getCommands() map[string]cliCommand {
 		"map": {
 			name:        "map",
 			description: "Displays a map of the Pokedex",
-			callback:    c.mapPokedex,
+			callback:    c.mapPokedexForward,
 		},
 		"mapb": {
 			name:        "mapb",
